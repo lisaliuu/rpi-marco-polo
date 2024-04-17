@@ -6,6 +6,7 @@ from servo import *
 from PCA9685 import PCA9685
 from ObjectAvoidance import *
 ##### Include your files here
+from Turn_To_Angle import *
 
 # Global variables for shared data and synchronization
 mutex = Lock()  # Mutex to ensure thread-safe access to shared variables
@@ -20,21 +21,17 @@ def echolocation_thread():
     ##### Initialization of object
     global sound_detected, object_avoidance_running
     while True:
-        ##### Simulate a sound is being detected
-        ##### Change your private variables to public for simpler coding
-        input("Press Enter to simulate sound detection...")
-        sound_detected = True 
+        # Listen for Sound
+        echolocation.listen()
+        # Update local sound condition
+        sound_detected = echolocation.get_sound_status()
+        
         with mutex:
             while object_avoidance_running:
                 wait_OV.wait()
             PWM.setMotorModel(0,0,0,0) # Stop Motors from OV    
             ##### Run your motor here
-            print("")
-            print("----------------------------")
-            print("Running Motors: Echolocation")
-            time.sleep(5) # Emulate some actions
-            print("END: Echolocation")
-            print("----------------------------")
+            echolocation.turn_to_angle()
             ##### Stop your motor here
             sound_detected = False
             wait_sound.notify_all()
@@ -71,8 +68,15 @@ def object_avoidance_thread():
 if __name__ == '__main__':
     try:
         print('Program is starting ...')
+        
+        ##### Echolocation Object
+        echolocation = Turn_To_Angle()
         ##### Run your calibration Here
+        echolocation.calibrate_angles()
         ##### Initialize your object here
+        echolocation.init_mic()
+        
+        ##### Avoidance Object
         objectAVD = ObjectAvoidance()
 
         echolocation_thread = Thread(target=echolocation_thread)
