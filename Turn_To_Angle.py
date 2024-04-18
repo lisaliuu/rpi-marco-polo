@@ -6,15 +6,17 @@ from Motor import *
 from ADC import * 
 
 class Turn_To_Angle: 
-    __left_conversion = 0
-    __right_conversion = 0
-    sound = False
-    __angle = 0
+    def __init__(self) -> None:
+        self.__left_conversion = 0
+        self.__right_conversion = 0
+        self.sound = False
+        self.__angle = 0
+        self.adc=Adc() 
+        self.PWM=Motor()
     
     def run(self): 
         try: 
-            self.adc=Adc() 
-            self.PWM=Motor()
+            
             self.calibrate_angles()
             while True:  
                 # Setup microphone
@@ -44,16 +46,16 @@ class Turn_To_Angle:
                     time.sleep(1)
                      
         except KeyboardInterrupt: 
-           led_Car.PWM.setMotorModel(0,0,0,0)  
+           self.PWM.setMotorModel(0,0,0,0)  
 
     def turn_right(self):
-        led_Car.PWM.setMotorModel(4095,4095,-4095,-4095)
+        self.PWM.setMotorModel(4095,4095,-4095,-4095)
 
     def turn_left(self):
-        led_Car.PWM.setMotorModel(-4095,-4095,4095,4095)
+        self.PWM.setMotorModel(-4095,-4095,4095,4095)
 
     def stop(self):
-        led_Car.PWM.setMotorModel(0,0,0,0)
+        self.PWM.setMotorModel(0,0,0,0)
         
     def calibrate_angles(self):
         ### Calibrate right conversion value.
@@ -105,7 +107,7 @@ class Turn_To_Angle:
     def init_mic(self):
         self.dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
         self.Mic_tuning = Tuning(self.dev)
-        self.Mic_tuning.set_vad_threshold()
+        self.Mic_tuning.set_vad_threshold(200)
         
     def listen(self):
         if self.dev:
