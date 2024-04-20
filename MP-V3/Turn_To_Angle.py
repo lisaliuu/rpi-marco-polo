@@ -27,7 +27,6 @@ class Turn_To_Angle:
                 
                 # Get angle if a sound is present
                 if self.sound:
-                    self.find_angle()
                     print(self.__angle)
                 
                     # Turn to angle
@@ -86,7 +85,6 @@ class Turn_To_Angle:
         
     def turn_to_angle(self):
         print("!!!!Echolocation: Turn_to_angle called")
-        self.find_angle()
         print(self.__angle)
     
         # Turn to angle
@@ -115,6 +113,7 @@ class Turn_To_Angle:
             if (self.Mic_tuning.is_voice()):
                 print("Sound detected", end=" ")
                 self.sound = True
+                self.find_angle()
                 print(self.sound)
         
     def find_angle(self):
