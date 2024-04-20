@@ -3,10 +3,10 @@ import time
 from Motor import *
 import RPi.GPIO as GPIO
 from servo import *
-from PCA9685 import PCA9685 
+from PCA9685 import PCA9685
 from ObjectAvoidance import *
-from Turn_To_Angle import *
 ##### Include your files here
+from Turn_To_Angle import *
 
 # Global variables for shared data and synchronization
 mutex = Lock()  # Mutex to ensure thread-safe access to shared variables
@@ -21,22 +21,17 @@ def echolocation_thread():
     ##### Initialization of object
     global sound_detected, object_avoidance_running
     while True:
-        ##### Detecting a sound
-         echolocation.listen()
-         sound_detected = echolocation.get_sound_status()
-
+        # Listen for Sound
+        echolocation.listen()
+        # Update local sound condition
+        sound_detected = echolocation.get_sound_status()
+        
         with mutex:
             while object_avoidance_running:
                 wait_OV.wait()
             PWM.setMotorModel(0,0,0,0) # Stop Motors from OV    
             ##### Run your motor here
-            print("")
-            print("----------------------------")
-            print("Running Motors: Echolocation")
             echolocation.turn_to_angle()
-            time.sleep(5) # Emulate some actions
-            print("END: Echolocation")
-            print("----------------------------")
             ##### Stop your motor here
             sound_detected = False
             wait_sound.notify_all()
@@ -73,13 +68,16 @@ def object_avoidance_thread():
 if __name__ == '__main__':
     try:
         print('Program is starting ...')
-        ##### Run your calibration Here
-        ##### Initialize your object here
-        objectAVD = ObjectAvoidance()
+        
         ##### Echolocation Object
         echolocation = Turn_To_Angle()
+        ##### Run your calibration Here
         echolocation.calibrate_angles()
+        ##### Initialize your object here
         echolocation.init_mic()
+        
+        ##### Avoidance Object
+        objectAVD = ObjectAvoidance()
 
         echolocation_thread = Thread(target=echolocation_thread)
         echolocation_thread.daemon = True
