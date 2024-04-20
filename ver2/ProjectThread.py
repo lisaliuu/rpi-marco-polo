@@ -22,10 +22,8 @@ def echolocation_thread():
     global sound_detected, object_avoidance_running
     while True:
         ##### Detecting a sound
-        while(not sound_detected):
-             echolocation.listen()
-             sound_detected = echolocation.get_sound_status()
-             # print("Sound Detected:", sound_detected)
+         echolocation.listen()
+         sound_detected = echolocation.get_sound_status()
 
         with mutex:
             while object_avoidance_running:
