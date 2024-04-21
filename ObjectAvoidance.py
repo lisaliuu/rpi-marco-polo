@@ -26,6 +26,7 @@ class ObjectAvoidance:
         self.R = 0
         self.PWM = Motor()
         self.pwm = Servo()
+        self.distance_cm = [0, 0, 0, 0, 0]
     
     def resetDistanceArray(self):
         self.left_distances.clear()
@@ -49,6 +50,8 @@ class ObjectAvoidance:
         self.M = min(self.middle_distances)
         self.R = min(self.right_distances)
 
+        time.sleep(0.01)
+
     def scanRtoL(self):
         self.resetDistanceArray()
         for angle in reversed(self.angles):
@@ -66,6 +69,8 @@ class ObjectAvoidance:
         self.M = min(self.middle_distances)
         self.R = min(self.right_distances)
 
+        time.sleep(0.01)
+
     def pulseIn(self, pin, level, timeOut):  # obtain pulse time of a pin under timeOut
         t0 = time.time()
         while (GPIO.input(pin) != level):
@@ -79,28 +84,33 @@ class ObjectAvoidance:
         return pulseTime
 
     def get_distance(self):  # get the measurement results of ultrasonic module,with unit: cm
-        distance_cm = [0, 0, 0, 0, 0]
         for i in range(5):
             GPIO.output(self.trigger_pin, GPIO.HIGH)  # make trigger_pin output 10us HIGH level
             time.sleep(0.00001)  # 10us
             GPIO.output(self.trigger_pin, GPIO.LOW)  # make trigger_pin output LOW level
             pingTime = self.pulseIn(self.echo_pin, GPIO.HIGH, self.timeOut)  # read plus time of echo_pin
-            distance_cm[i] = pingTime * 340.0 / 2.0 / 10000.0  # calculate distance with sound speed 340m/s
-        distance_cm = sorted(distance_cm)
-        return int(distance_cm[2])
+            self.distance_cm[i] = pingTime * 340.0 / 2.0 / 10000.0  # calculate distance with sound speed 340m/s
+        self.distance_cm = sorted(self.distance_cm)
+
+        if (self.distance_cm[2] == 0): # Filter Data
+            return int(200)
+        return int(self.distance_cm[2])
 
     def stop_motor(self):
         self.PWM.setMotorModel(0, 0, 0, 0)
 
     def run_motor(self, L, M, R):
+        
         # Too Close - Back UP
         if (L < 30 and M < 30 and R < 30) or M < 30:
             self.PWM.setMotorModel(-1500, -1500, -1500, -1500)
             time.sleep(0.1)
             if L < R:
                 self.PWM.setMotorModel(1500, 1500, -1500, -1500)
+                time.sleep(0.1)
             else:
                 self.PWM.setMotorModel(-1500, -1500, 1500, 1500)
+                time.sleep(0.1)
         elif L < 30 and M < 30:
             self.PWM.setMotorModel(2000, 2000, -2000, -2000)
         elif R < 30 and M < 30:
@@ -114,20 +124,22 @@ class ObjectAvoidance:
             if R < 10:
                 self.PWM.setMotorModel(-1500, -1500, 1500, 1500)
         else:
-            self.PWM.setMotorModel(1500, 1500, 1500, 1500)
+            self.PWM.setMotorModel(1300, 1300, 1300, 1300)
 
     def run(self):
         while True:
             self.scanLtoR()
-            self.run_motor(self.L, self.M, self.R)
+            # self.run_motor(self.L, self.M, self.R)
             self.scanRtoL()
-            self.run_motor(self.L, self.M, self.R)
+            # self.run_motor(self.L, self.M, self.R)
 
 if __name__ == '__main__':
     print('Program is starting ... ')
     try:
         objectAVD = ObjectAvoidance()
-        objectAVD.run()
+        while True:
+            objectAVD.run()
+            time.sleep(0.01)
     except KeyboardInterrupt:
         # Stop motors and reset servo
         objectAVD.PWM.setMotorModel(0, 0, 0, 0)
