@@ -22,7 +22,7 @@ sound_waiting = False
 #### ZMQ
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
-socket.connect("tcp://localhost:5555")
+socket.connect("tcp://10.68.201.215:5555")
 socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
 def echolocation_thread():
