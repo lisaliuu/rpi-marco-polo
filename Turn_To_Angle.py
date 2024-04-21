@@ -108,7 +108,7 @@ class Turn_To_Angle:
     def init_mic(self):
         self.dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
         self.Mic_tuning = Tuning(self.dev)
-        self.Mic_tuning.set_vad_threshold(60)
+        self.Mic_tuning.set_vad_threshold(3)
         
     def listen(self):
         if self.dev:
