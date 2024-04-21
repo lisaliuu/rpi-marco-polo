@@ -85,29 +85,30 @@ class Turn_To_Angle:
         time.sleep(3)
         
     def turn_to_angle(self):
-        if self.sound:
-            self.find_angle()
-            print(self.__angle)
-        
-            # Turn to angle
-            if (self.__angle <= 180):
-                elapse_time = self.__left_conversion * self.__angle
-                print(f'Calculated time: {elapse_time}\n')
-                self.turn_left()
-            else:
-                self.__angle = 360 - self.__angle
-                elapse_time = self.__right_conversion * self.__angle
-                print(f'Calculated time: {elapse_time}\n')
-                self.turn_right()
-            time.sleep(elapse_time)
-            self.stop()
-            self.sound = 0  
-            time.sleep(1)
+        print("!!!!Echolocation: Turn_to_angle called")
+        self.find_angle()
+        print(self.__angle)
+    
+        # Turn to angle
+        if (self.__angle <= 180):
+            elapse_time = self.__left_conversion * self.__angle
+            print(f'Calculated time: {elapse_time}\n')
+            self.turn_left()
+        else:
+            self.__angle = 360 - self.__angle
+            elapse_time = self.__right_conversion * self.__angle
+            print(f'Calculated time: {elapse_time}\n')
+            self.turn_right()
+
+        time.sleep(elapse_time)
+        self.stop()
+        self.sound = False
+        time.sleep(1)
         
     def init_mic(self):
         self.dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
         self.Mic_tuning = Tuning(self.dev)
-        self.Mic_tuning.set_vad_threshold(200)
+        self.Mic_tuning.set_vad_threshold(60)
         
     def listen(self):
         if self.dev:
