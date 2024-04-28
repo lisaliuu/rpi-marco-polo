@@ -5,6 +5,7 @@ from servo import *
 from PCA9685 import PCA9685
 
 class ObjectAvoidance:
+    # Defining private variables
     def __init__(self):
         GPIO.setwarnings(False)
         self.trigger_pin = 27
@@ -27,12 +28,14 @@ class ObjectAvoidance:
         self.PWM = Motor()
         self.pwm = Servo()
         self.distance_cm = [0, 0, 0, 0, 0]
-    
+
+    # Helper function: Set all distance group array to 0
     def resetDistanceArray(self):
         self.left_distances.clear()
         self.middle_distances.clear()
         self.right_distances.clear()
-        
+
+    # Scan obstacle from left to right using ultrasonic sensor, update distance array
     def scanLtoR(self):
         self.resetDistanceArray()
         for angle in self.angles:
@@ -46,12 +49,14 @@ class ObjectAvoidance:
                 self.middle_distances.append(distance)
             if angle in self.right_angles:
                 self.right_distances.append(distance)   
+        # Take the minimum and make them L,M,R for decision
         self.L = min(self.left_distances)
         self.M = min(self.middle_distances)
         self.R = min(self.right_distances)
 
         time.sleep(0.01)
 
+    # Scan obstacle from right to left using ultrasonic sensor, update distance array
     def scanRtoL(self):
         self.resetDistanceArray()
         for angle in reversed(self.angles):
@@ -65,6 +70,7 @@ class ObjectAvoidance:
                 self.middle_distances.append(distance)
             if angle in self.right_angles:
                 self.right_distances.append(distance)
+        # Take the minimum and make them L,M,R for decision
         self.L = min(self.left_distances)
         self.M = min(self.middle_distances)
         self.R = min(self.right_distances)
@@ -92,6 +98,7 @@ class ObjectAvoidance:
             self.distance_cm[i] = pingTime * 340.0 / 2.0 / 10000.0  # calculate distance with sound speed 340m/s
         self.distance_cm = sorted(self.distance_cm)
 
+        # IMPORTANT: Ultrasonic sensor returns 0 when distance > 2m. Need to cap this value. 
         if (self.distance_cm[2] == 0): # Filter Data
             return int(200)
         return int(self.distance_cm[2])
@@ -99,6 +106,7 @@ class ObjectAvoidance:
     def stop_motor(self):
         self.PWM.setMotorModel(0, 0, 0, 0)
 
+    # Using L,M,R, the distance from obstacle, and run a decision based control
     def run_motor(self, L, M, R):
         
         # Too Close - Back UP
