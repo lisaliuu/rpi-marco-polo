@@ -18,7 +18,7 @@ sound_detected = False  # Shared variable to signal sound detection
 object_avoidance_running = True  # Shared variable to indicate whether object avoidance is running
 sound_waiting = False
 
-#### ZMQ
+#### ZMQ Subscriber
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 socket.connect("tcp://10.68.201.215:5555")
@@ -31,7 +31,7 @@ def echolocation_thread():
     ##### Initialization of object
     global sound_detected, object_avoidance_running, sound_waiting
     while True:
-        ##### Pause for detection
+        ##### Pause for detection: ZMQ wait
         message = socket.recv_string()
         print("Received:", message)
         sound_detected = True 
@@ -39,19 +39,18 @@ def echolocation_thread():
         with mutex: # Conditional variable with mutex
             while object_avoidance_running:
                 wait_OV.wait()
-            PWM.setMotorModel(0,0,0,0) # Stop Motors from OV    
-            ##### Run your motor here
+            PWM.setMotorModel(0,0,0,0) # Stop Motors from OA    
             print("")
             print("----------------------------")
             print("Running Motors: Echolocation")
 
             time.sleep(1)
+            # Listen for a sound
             while(not sound_waiting):
                 echolocation.listen()
                 sound_waiting = echolocation.get_sound_status()
-
+            # Turn towards the sound
             echolocation.turn_to_angle()
-            #time.sleep(5) # Emulate some actions
             print("END: Echolocation")
             print("----------------------------")
             ##### Stop your motor here
